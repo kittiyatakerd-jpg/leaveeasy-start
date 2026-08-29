@@ -6,20 +6,27 @@
 (function () {
   var กล่อง = document.getElementById("ผลลัพธ์");
 
-  // ใบลาจากข้อมูลปลอม บวกกับใบที่เพิ่งยื่นในหน้าถัดไป
-  // (สัปดาห์นี้ยังไม่ต่อฐานข้อมูล ใบที่ยื่นใหม่จึงหายเมื่อปิดเบราว์เซอร์)
-  var ใบลาที่ยื่นใหม่ = JSON.parse(sessionStorage.getItem("ใบลาที่ยื่นใหม่") || "[]");
-  var ใบลาทั้งหมด = window.LEAVE_DATA.leaveRequests.concat(ใบลาที่ยื่นใหม่);
+  // สัปดาห์ที่ 6: อ่านใบลาจริงจาก Firestore (โฟลเดอร์ leaveRequests)
+  // บวกกับใบที่เพิ่งยื่นในหน้าถัดไป (ยังเก็บใน sessionStorage จนกว่าจะถึงสัปดาห์ที่ 7)
+  db.collection("leaveRequests").get().then(function (ผลลัพธ์Firestore) {
+    var ใบลาจากฐานข้อมูล = ผลลัพธ์Firestore.docs.map(function (เอกสาร) {
+      return Object.assign({ id: เอกสาร.id }, เอกสาร.data());
+    });
+    var ใบลาที่ยื่นใหม่ = JSON.parse(sessionStorage.getItem("ใบลาที่ยื่นใหม่") || "[]");
+    var ใบลาทั้งหมด = ใบลาจากฐานข้อมูล.concat(ใบลาที่ยื่นใหม่);
 
-  // ถ้ามีสถานะติดมาท้าย URL ให้กรองเฉพาะสถานะนั้น
-  var สถานะที่กรอง = ค่าจากURL("status");
-  if (สถานะที่กรอง) {
-    ใบลาทั้งหมด = ใบลาทั้งหมด.filter(function (ใบ) { return ใบ.status === สถานะที่กรอง; });
-    document.querySelector(".subtitle").textContent =
-      "กำลังแสดงเฉพาะใบลาที่สถานะ " + สถานะที่กรอง + " · กดเมนู รายการใบลา เพื่อดูทั้งหมด";
-  }
+    // ถ้ามีสถานะติดมาท้าย URL ให้กรองเฉพาะสถานะนั้น
+    var สถานะที่กรอง = ค่าจากURL("status");
+    if (สถานะที่กรอง) {
+      ใบลาทั้งหมด = ใบลาทั้งหมด.filter(function (ใบ) { return ใบ.status === สถานะที่กรอง; });
+      document.querySelector(".subtitle").textContent =
+        "กำลังแสดงเฉพาะใบลาที่สถานะ " + สถานะที่กรอง + " · กดเมนู รายการใบลา เพื่อดูทั้งหมด";
+    }
 
-  แสดงตาราง(ใบลาทั้งหมด);
+    แสดงตาราง(ใบลาทั้งหมด);
+  }).catch(function (err) {
+    กล่อง.innerHTML = "<p>โหลดข้อมูลจาก Firestore ไม่สำเร็จ: " + esc(err.message) + "</p>";
+  });
 
   function แสดงตาราง(รายการ) {
     if (รายการ.length === 0) {

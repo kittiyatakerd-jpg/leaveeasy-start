@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ใส่ข้อมูลตัวอย่าง · LeaveEasy</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js" defer></script>
+  <script src="js/firebase-config.js" defer></script>
+  <script src="js/seed.js" defer></script>
+  <script defer>
+    document.addEventListener("DOMContentLoaded", function () {
+      document.getElementById("ปุ่มSeed").addEventListener("click", function () {
+        this.disabled = true;
+        seedData(function (ข้อความ) {
+          document.getElementById("สถานะ").textContent = ข้อความ;
+        }).catch(function (err) {
+          document.getElementById("สถานะ").textContent = "❌ เกิดข้อผิดพลาด: " + err.message;
+        });
+      });
+    });
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1>ใส่ข้อมูลตัวอย่างลง Firestore</h1>
+    <p class="subtitle">
+      หน้านี้เป็นเครื่องมือใช้ครั้งเดียวสำหรับสัปดาห์ที่ 6 — ไม่ได้อยู่ใน 5 หน้าหลักของระบบ
+      กดปุ่มด้านล่างเพื่อสร้างข้อมูลตัวอย่างตามหัวข้อ 7 ของ <code>leaveeasy-spec.md</code>
+      (users 3 คน · leaveTypes 3 แบบ · leaveRequests 5 ใบ · approvals 4 รายการ)
+    </p>
+    <div class="card">
+      <button type="button" class="btn" id="ปุ่มSeed">ใส่ข้อมูลตัวอย่างลง Firestore</button>
+      <p id="สถานะ" style="margin-top:12px"></p>
+    </div>
+  </div>
+</body>
+</html>
