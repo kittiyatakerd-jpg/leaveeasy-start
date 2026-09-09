@@ -21,6 +21,17 @@ desktop.ini
 .idea/
 
 
+# ── ไฟล์คีย์/ลับ (เพิ่มไว้ก่อนตั้งค่า Firebase CLI สัปดาห์ที่ 7) ──
+# หมายเหตุ: apiKey ใน js/firebase-config.js ไม่ใช่ความลับ (ออกแบบมาให้เห็นฝั่งเบราว์เซอร์ได้
+# ความปลอดภัยจริงอยู่ที่ Firestore Security Rules) แต่ไฟล์ด้านล่างนี้ห้ามหลุดขึ้น GitHub เด็ดขาด
+*.env
+.env.*
+*serviceAccountKey*.json
+*service-account*.json
+firebase-debug.log
+.firebase/
+
+
 # ─────────────────────────────────────────────────────────────
 # ✅ วิธีตรวจว่าใช้ได้จริง — ก่อน push ทุกครั้ง พิมพ์บอก Claude ว่า
 #
