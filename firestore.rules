@@ -1,0 +1,13 @@
+rules_version = '2';
+
+// LeaveEasy — กฎขั้นต่ำของสัปดาห์ที่ 7: ต้องล็อกอินก่อน ถึงจะอ่าน/เขียนได้
+// ยังไม่แยกสิทธิ์ตาม role (employee/manager/hr) — เริ่มแยกจริงสัปดาห์ที่ 8
+// นำไปวางในแท็บ Rules ของ Firebase Console ได้ทันที หรือ deploy ด้วย
+// `firebase deploy --only firestore:rules` (ต้องมี firebase.json ชี้มาที่ไฟล์นี้ก่อน)
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

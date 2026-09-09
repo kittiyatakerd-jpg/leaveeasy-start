@@ -9,8 +9,11 @@
   var ช่องชื่อใหม่ = document.getElementById("ชื่อประเภทใหม่");
   var กล่องเตือน = document.getElementById("เตือนประเภท");
 
-  วาดตาราง();
-  document.getElementById("ปุ่มเพิ่ม").addEventListener("click", เพิ่มประเภท);
+  // หน้านี้ยังเก็บในหน่วยความจำเหมือนสัปดาห์ที่ 6 (ยังไม่ต่อ Firestore) แต่ต้องล็อกอินก่อนถึงเข้าได้
+  เมื่อรู้ผู้ใช้(function () {
+    วาดตาราง();
+    document.getElementById("ปุ่มเพิ่ม").addEventListener("click", เพิ่มประเภท);
+  });
 
   function วาดตาราง() {
     if (รายการ.length === 0) {

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>เข้าสู่ระบบ · LeaveEasy</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js" defer></script>
+  <script src="js/firebase-config.js" defer></script>
+  <script src="js/util.js" defer></script>
+  <script src="js/login.js" defer></script>
+</head>
+<body>
+  <div class="container" style="max-width:480px">
+    <h1>🔧 LeaveEasy</h1>
+    <p class="subtitle">เข้าสู่ระบบหรือสมัครสมาชิกเพื่อเริ่มใช้งาน</p>
+
+    <div class="card">
+      <div class="btn-row" style="margin-top:0">
+        <button type="button" class="btn" id="แท็บเข้าสู่ระบบ">เข้าสู่ระบบ</button>
+        <button type="button" class="btn-ghost" id="แท็บสมัครสมาชิก">สมัครสมาชิก</button>
+      </div>
+
+      <div id="ข้อความเตือน" class="alert alert-error hidden"></div>
+
+      <form id="ฟอร์มเข้าสู่ระบบ">
+        <label for="loginEmail">อีเมล</label>
+        <input type="email" id="loginEmail" autocomplete="username">
+
+        <label for="loginPassword">รหัสผ่าน</label>
+        <input type="password" id="loginPassword" autocomplete="current-password">
+
+        <div class="btn-row">
+          <button type="submit" id="ปุ่มเข้าสู่ระบบ">เข้าสู่ระบบ</button>
+        </div>
+      </form>
+
+      <form id="ฟอร์มสมัครสมาชิก" class="hidden">
+        <label for="signupName">ชื่อ-นามสกุล</label>
+        <input type="text" id="signupName" placeholder="เช่น สมชาย ใจดี">
+
+        <label for="signupEmail">อีเมล</label>
+        <input type="email" id="signupEmail" autocomplete="username">
+
+        <label for="signupPassword">รหัสผ่าน (อย่างน้อย 6 ตัวอักษร)</label>
+        <input type="password" id="signupPassword" autocomplete="new-password">
+
+        <div class="btn-row">
+          <button type="submit" id="ปุ่มสมัครสมาชิก">สมัครสมาชิก</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

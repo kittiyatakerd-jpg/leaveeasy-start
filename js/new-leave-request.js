@@ -8,18 +8,23 @@
   var ช่องประเภท = document.getElementById("leaveTypeId");
   var กล่องเตือน = document.getElementById("ข้อความเตือน");
   var ปุ่มบันทึก = document.getElementById("ปุ่มบันทึก");
+  var ผู้ใช้ปัจจุบัน = null;
 
-  // เติมรายการเลื่อนลงด้วยประเภทการลาที่มีอยู่จริงใน Firestore
-  db.collection("leaveTypes").get().then(function (ผลลัพธ์) {
-    ผลลัพธ์.docs.forEach(function (เอกสาร) {
-      var ประเภท = เอกสาร.data();
-      var ตัวเลือก = document.createElement("option");
-      ตัวเลือก.value = เอกสาร.id;
-      ตัวเลือก.textContent = ประเภท.name;
-      ช่องประเภท.appendChild(ตัวเลือก);
+  เมื่อรู้ผู้ใช้(function (ผู้ใช้) {
+    ผู้ใช้ปัจจุบัน = ผู้ใช้;
+
+    // เติมรายการเลื่อนลงด้วยประเภทการลาที่มีอยู่จริงใน Firestore
+    db.collection("leaveTypes").get().then(function (ผลลัพธ์) {
+      ผลลัพธ์.docs.forEach(function (เอกสาร) {
+        var ประเภท = เอกสาร.data();
+        var ตัวเลือก = document.createElement("option");
+        ตัวเลือก.value = เอกสาร.id;
+        ตัวเลือก.textContent = ประเภท.name;
+        ช่องประเภท.appendChild(ตัวเลือก);
+      });
+    }).catch(function (err) {
+      เตือน("โหลดประเภทการลาไม่สำเร็จ: " + err.message);
     });
-  }).catch(function (err) {
-    เตือน("โหลดประเภทการลาไม่สำเร็จ: " + err.message);
   });
 
   ฟอร์ม.addEventListener("submit", function (e) {
@@ -47,12 +52,13 @@
 
     ปุ่มบันทึก.disabled = true;
 
-    // สัปดาห์ที่ 7 ยังไม่ต่อ Authentication (มาในส่วน C) จึงสมมติว่าผู้ขอลาคือ สมชาย ใจดี ไปก่อน
+    // requesterId เป็น uid จริงของคนที่ล็อกอินอยู่ (มาจาก auth-guard.js)
     db.collection("leaveRequests").add({
       title: ค่า.title,
       reason: ค่า.reason,
       status: "รอพิจารณา",                       // ใบใหม่เริ่มที่ รอพิจารณา เสมอ
-      requesterId: "u001", requesterName: "สมชาย ใจดี",
+      requesterId: ผู้ใช้ปัจจุบัน.uid,
+      requesterName: ผู้ใช้ปัจจุบัน.displayName || ผู้ใช้ปัจจุบัน.email,
       approverId: "", approverName: "",
       leaveTypeId: ค่า.leaveTypeId, leaveTypeName: ชื่อประเภท,
       startDate: ค่า.startDate,
