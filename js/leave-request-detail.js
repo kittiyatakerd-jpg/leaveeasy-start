@@ -7,6 +7,9 @@
   var รหัสใบลา = ค่าจากURL("id");
   var กล่องใบลา = document.getElementById("กล่องใบลา");
   var กล่องความเห็น = document.getElementById("กล่องความเห็น");
+  var กล่องสรุปAI = document.getElementById("กล่องสรุปAI");
+  var เนื้อหาสรุปAI = document.getElementById("เนื้อหาสรุปAI");
+  var ปุ่มสรุปAI = document.getElementById("ปุ่มสรุปAI");
   var เอกสารใบลา = db.collection("leaveRequests").doc(รหัสใบลา);
 
   var ผู้ใช้ปัจจุบัน = null;
@@ -33,8 +36,11 @@
 
       วาดใบลา();
       วาดความเห็น();
+      วาดสรุปAI();
       กล่องความเห็น.classList.remove("hidden");
+      กล่องสรุปAI.classList.remove("hidden");
       document.getElementById("ปุ่มส่งความเห็น").addEventListener("click", ส่งความเห็น);
+      ปุ่มสรุปAI.addEventListener("click", ให้AIสรุป);
     }).catch(function (err) {
       กล่องใบลา.innerHTML = "<p>โหลดข้อมูลไม่สำเร็จ: " + esc(err.message) + "</p>";
     });
@@ -76,6 +82,74 @@
       document.getElementById("ปุ่มอนุมัติ").addEventListener("click", function () { เปลี่ยนสถานะ("อนุมัติ"); });
       document.getElementById("ปุ่มไม่อนุมัติ").addEventListener("click", function () { เปลี่ยนสถานะ("ไม่อนุมัติ"); });
       document.getElementById("ปุ่มลบ").addEventListener("click", ลบใบลา);
+    }
+  }
+
+  // ── วาดกล่องสรุป AI (ถ้าเคยสรุปไว้แล้วให้โชว์เลยโดยไม่ต้องกดใหม่) ──
+  function วาดสรุปAI() {
+    if (ใบ.aiSuggestion) {
+      เนื้อหาสรุปAI.innerHTML = '<div class="alert alert-ai">' + esc(ใบ.aiSuggestion) + "</div>";
+      ปุ่มสรุปAI.textContent = "ให้ AI สรุปใหม่อีกครั้ง";
+    } else {
+      เนื้อหาสรุปAI.innerHTML = '<p class="hint">ยังไม่มีสรุปจาก AI — กดปุ่มด้านล่างเพื่อให้ AI อ่านใบลานี้แล้วสรุปให้</p>';
+    }
+  }
+
+  // ── ให้ AI อ่านใบลา + ความเห็นทั้งหมด แล้วสรุปให้หัวหน้าอ่านก่อนตัดสินใจ ──
+  // AI แค่สรุปให้อ่าน ไม่ตัดสินใจแทน — สถานะจริงเปลี่ยนเฉพาะตอนคนกดปุ่มอนุมัติ/ไม่อนุมัติเท่านั้น
+  async function ให้AIสรุป() {
+    ปุ่มสรุปAI.disabled = true;
+    ปุ่มสรุปAI.textContent = "🤖 กำลังสรุป...";
+
+    var รายการความเห็นข้อความ = ความเห็น.length === 0
+      ? "ยังไม่มีความเห็นจากผู้อนุมัติ"
+      : ความเห็น.map(function (c) { return "- " + c.authorName + ": " + c.message; }).join("\n");
+
+    var คำถาม =
+      "นี่คือใบขอลาที่รอการพิจารณา ช่วยสรุปสั้นๆ ไม่เกิน 3 ประโยคให้หัวหน้าอ่านก่อนตัดสินใจ " +
+      "ห้ามแนะนำว่าควรอนุมัติหรือไม่อนุมัติ แค่สรุปสาระสำคัญให้อ่านง่ายเท่านั้น\n\n" +
+      "ผู้ขอลา: " + ใบ.requesterName + "\n" +
+      "ประเภทการลา: " + ใบ.leaveTypeName + "\n" +
+      "วันที่ลา: " + ใบ.startDate + " ถึง " + ใบ.endDate + "\n" +
+      "หัวข้อ: " + ใบ.title + "\n" +
+      "เหตุผล: " + ใบ.reason + "\n" +
+      "ความเห็นที่มีอยู่แล้ว:\n" + รายการความเห็นข้อความ;
+
+    var ตัวตัดเวลา = new AbortController();
+    var ตัวจับเวลา = setTimeout(function () { ตัวตัดเวลา.abort(); }, 15000);
+
+    try {
+      var res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        signal: ตัวตัดเวลา.signal,
+        headers: {
+          "Authorization": "Bearer " + OPENROUTER_API_KEY,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: OPENROUTER_MODEL,
+          messages: [{ role: "user", content: คำถาม }]
+        })
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+
+      var data = await res.json();
+      var คำตอบ = (data.choices[0].message.content || "").trim();
+      var เวลา = เวลาตอนนี้();
+
+      // เขียนผลสรุปกลับลงเอกสารใบลา (แก้เฉพาะช่อง aiSuggestion) + เก็บ log ไว้ในโฟลเดอร์ย่อย aiLog
+      await เอกสารใบลา.update({ aiSuggestion: คำตอบ });
+      await เอกสารใบลา.collection("aiLog").add({ input: คำถาม, output: คำตอบ, createdAt: เวลา });
+
+      ใบ.aiSuggestion = คำตอบ;
+      วาดสรุปAI();
+    } catch (err) {
+      var ข้อความ = err.name === "AbortError" ? "AI ตอบช้าเกิน 15 วินาที" : "เรียก AI ไม่สำเร็จ: " + err.message;
+      เนื้อหาสรุปAI.innerHTML = '<div class="alert alert-error">⚠️ ' + esc(ข้อความ) + "</div>";
+    } finally {
+      clearTimeout(ตัวจับเวลา);
+      ปุ่มสรุปAI.disabled = false;
+      if (!ปุ่มสรุปAI.textContent.includes("สรุปใหม่")) ปุ่มสรุปAI.textContent = "ให้ AI สรุปใบลานี้ให้หัวหน้าอ่าน";
     }
   }
 
