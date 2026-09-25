@@ -30,6 +30,7 @@ desktop.ini
 *service-account*.json
 firebase-debug.log
 .firebase/
+js/ai-config.js
 
 
 # ─────────────────────────────────────────────────────────────

@@ -8,7 +8,8 @@
       "*.md",
       ".claude/**",
       "seed.html",
-      "js/seed.js"
+      "js/seed.js",
+      "ai-test.html"
     ]
   },
   "firestore": {

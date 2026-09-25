@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ทดสอบ AI · LeaveEasy</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/ai-config.js" defer></script>
+</head>
+<body>
+  <div class="container">
+    <h1>ทดสอบเรียก AI (ขั้น A1)</h1>
+    <p class="subtitle">
+      หน้านี้เป็นเครื่องมือทดสอบครั้งเดียวตามใบงานสัปดาห์ที่ 8 — ไม่ได้อยู่ใน 5 หน้าหลักของระบบ
+      กดปุ่มเพื่อส่งคำว่า "สวัสดี" ไปหา OpenRouter แล้วดูคำตอบภาษาไทย
+    </p>
+    <div class="card">
+      <button type="button" class="btn" id="ปุ่มทดสอบ">ส่ง "สวัสดี" ไปหา AI</button>
+      <p id="ผลลัพธ์" style="margin-top:12px"></p>
+    </div>
+  </div>
+
+  <script defer>
+    document.addEventListener("DOMContentLoaded", function () {
+      document.getElementById("ปุ่มทดสอบ").addEventListener("click", async function () {
+        var กล่องผล = document.getElementById("ผลลัพธ์");
+        กล่องผล.textContent = "⏳ กำลังส่งคำถาม...";
+        try {
+          var res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Authorization": "Bearer " + OPENROUTER_API_KEY,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              model: OPENROUTER_MODEL,
+              messages: [{ role: "user", content: "สวัสดี" }]
+            })
+          });
+          if (!res.ok) throw new Error("HTTP " + res.status + " " + (await res.text()));
+          var data = await res.json();
+          กล่องผล.textContent = "✅ AI ตอบ: " + data.choices[0].message.content;
+        } catch (err) {
+          กล่องผล.textContent = "❌ เรียก AI ไม่สำเร็จ: " + err.message;
+        }
+      });
+    });
+  </script>
+</body>
+</html>
